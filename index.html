@@ -4,7 +4,14 @@
     <title>20240807 Demo</title>
     <style>
         body {
-            background-color: grey;
+            background: linear-gradient(to right, red, orange, yellow, green, blue, indigo, violet);
+            background-size: 1000% 100%;
+            animation: rainbow 10s linear infinite;
+        }
+
+        @keyframes rainbow {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 100% 50%; }
         }
     </style>
 </head>

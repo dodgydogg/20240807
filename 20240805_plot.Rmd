@@ -9,22 +9,128 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## R Markdown
+# data 
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
+```{r}
+library(tidyverse)
+library(plotly)
+library(htmlwidgets)
 ```
 
-## Including Plots
 
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
+```{r}
+raw_df <- readRDS("defendants.rds")
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+```{r}
+raw_df <- raw_df %>% 
+  mutate(counsel_type = case_when( d5辯護及代理 == "選任律師辯護" ~ "選任律師辯護",
+                                   d5辯護及代理 == "公設辯護人辯護" ~ "公設辯護人辯護",
+                                   d5辯護及代理 == "義務律師辯護" ~ "義務律師辯護",
+                                   d5辯護及代理 == "義務律師辯護-法律扶助" ~ "法扶律師辯護",
+                                   d5辯護及代理 == "選任律師辯護-法律扶助" ~ "法扶律師辯護",
+                                   .default = "無律師辯護")) %>% 
+  select(counsel_type, d2被告終結日期_年) %>% 
+  filter(d2被告終結日期_年 %in% 102:112)
+```
+
+```{r}
+plot_3 <- raw_df %>% 
+  group_by(d2被告終結日期_年, counsel_type) %>%
+  summarise(frq = n(), .groups = "drop") %>% 
+  ggplot(aes(x = d2被告終結日期_年, y = frq, group = counsel_type, color = counsel_type)) + 
+  geom_line() + 
+  geom_point() +
+  geom_text(aes(label = frq),
+            nudge_y = 2,
+            show.legend = FALSE) + 
+  labs(title = "地院辯護類別案件量變化（所有刑事被告）", x = "年度", y = "案件數")
+```
+
+```{r}
+plot_3 %>% ggplotly() %>% as_widget() %>% saveWidget("dc_counsel_type_by_year_all.html")
+```
+
+```{r}
+plot_3
+```
+```{r}
+plot_2 <- raw_df %>% filter(counsel_type != "無律師辯護") %>%
+  group_by(d2被告終結日期_年, counsel_type) %>%
+  summarise(frq = n(), .groups = "drop") %>% 
+  ggplot(aes(x = d2被告終結日期_年, y = frq, group = counsel_type, color = counsel_type)) + 
+  geom_line() + 
+  geom_point() +
+  geom_text(aes(label = frq),
+            nudge_y = 2,
+            show.legend = FALSE) + 
+  labs(title = "地院辯護類別案件量變化（排除無辯護）", x = "年度", y = "案件數")
+```
+
+```{r}
+plot_2 %>% ggplotly() %>% as_widget() %>% saveWidget("dc_counsel_type_by_year.html")
+```
+
+```{r}
+plot_2
+```
+
+# 高院
+
+```{r}
+raw_df_high <- readRDS("defendants_high_court.rds")
+```
+
+```{r}
+raw_df_high <- raw_df_high %>% 
+  mutate(counsel_type = case_when( d6辯護及代理 == "選任律師辯護" ~ "選任律師辯護",
+                                   d6辯護及代理 == "公設辯護人辯護" ~ "公設辯護人辯護",
+                                   d6辯護及代理 == "義務律師辯護" ~ "義務律師辯護",
+                                   d6辯護及代理 == "義務律師辯護-法律扶助" ~ "法扶律師辯護",
+                                   d6辯護及代理 == "選任律師辯護-法律扶助" ~ "法扶律師辯護",
+                                   .default = "無律師辯護")) %>% 
+  select(counsel_type, d2被告終結日期_年) %>% 
+  filter(d2被告終結日期_年 %in% 102:112)
+```
+
+```{r}
+plot_3_high <- raw_df_high %>% 
+  group_by(d2被告終結日期_年, counsel_type) %>%
+  summarise(frq = n(), .groups = "drop") %>% 
+  ggplot(aes(x = d2被告終結日期_年, y = frq, group = counsel_type, color = counsel_type)) + 
+  geom_line() + 
+  geom_point() +
+  geom_text(aes(label = frq),
+            nudge_y = 2,
+            show.legend = FALSE) + 
+  labs(title = "高院辯護類別案件量變化（所有刑事被告）", x = "年度", y = "案件數")
+```
+
+```{r}
+plot_3_high %>% ggplotly() %>% as_widget() %>% saveWidget("hc_counsel_type_by_year_all.html")
+```
+
+```{r}
+plot_3_high
+```
+
+```{r}
+plot_2_high <- raw_df_high %>% filter(counsel_type != "無律師辯護") %>%
+  group_by(d2被告終結日期_年, counsel_type) %>%
+  summarise(frq = n(), .groups = "drop") %>% 
+  ggplot(aes(x = d2被告終結日期_年, y = frq, group = counsel_type, color = counsel_type)) + 
+  geom_line() + 
+  geom_point() +
+  geom_text(aes(label = frq),
+            nudge_y = 2,
+            show.legend = FALSE) + 
+  labs(title = "高院辯護類別案件量變化（排除無辯護）", x = "年度", y = "案件數")
+```
+
+```{r}
+plot_2_high %>% ggplotly() %>% as_widget() %>% saveWidget("hc_counsel_type_by_year.html")
+```
+
+
+
